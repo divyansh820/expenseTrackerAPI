@@ -11,9 +11,21 @@ const app = express();
 const port = 4000;
 
 // MIDDLEWARE
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://expense-tracker-seven-cyan-82.vercel.app/",
+];
+
 app.use(
   cors({
-    origin: "https://expense-tracker-seven-cyan-82.vercel.app",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS not allowed"));
+      }
+    },
     credentials: true,
   })
 );
