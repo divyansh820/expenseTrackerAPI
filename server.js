@@ -11,7 +11,12 @@ const app = express();
 const port = 4000;
 
 // MIDDLEWARE
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://expense-tracker-seven-cyan-82.vercel.app",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
