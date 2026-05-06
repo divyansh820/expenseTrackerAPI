@@ -1,14 +1,15 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+
 import { connectDB } from "./config/db.js";
+
 import userRouter from "./routes/userRoute.js";
 import incomeRouter from "./routes/incomeRoute.js";
 import expenseRouter from "./routes/expenseRoute.js";
 import dashboardRouter from "./routes/dashboardRoute.js";
 
 const app = express();
-const port = 4000;
 
 // MIDDLEWARE
 const allowedOrigins = [
@@ -29,23 +30,12 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // DB
-const startServer = async () => {
-  try {
-    await connectDB();
-
-    app.listen(port, () => {
-      console.log(`Server started on http://localhost:${port}`);
-    });
-  } catch (err) {
-    console.error("Database connection failed:", err);
-  }
-};
-
-startServer();
+await connectDB();
 
 // ROUTES
 app.use("/api/user", userRouter);
