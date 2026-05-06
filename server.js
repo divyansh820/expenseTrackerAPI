@@ -33,7 +33,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // DB
-connectDB();
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(port, () => {
+      console.log(`Server started on http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("Database connection failed:", err);
+  }
+};
+
+startServer();
 
 // ROUTES
 app.use("/api/user", userRouter);
