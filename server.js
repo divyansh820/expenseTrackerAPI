@@ -31,13 +31,17 @@ app.use(
   }),
 );
 
-app.options(/.*/, cors());
+app.options("*", cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // DB
-await connectDB();
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+});
 
 // ROUTES
 app.use("/api/user", userRouter);
