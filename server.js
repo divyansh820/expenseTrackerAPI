@@ -31,17 +31,8 @@ app.use(
   }),
 );
 
-app.options("*", cors());
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// DB
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-});
 
 // ROUTES
 app.use("/api/user", userRouter);
@@ -56,8 +47,15 @@ app.get("/", (req, res) => {
 // PORT
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// DB + SERVER
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.log("Database connection failed", err);
+  });
 
 export default app;
