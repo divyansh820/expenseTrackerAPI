@@ -31,7 +31,7 @@ app.use(
   }),
 );
 
-app.options("*", cors());
+app.options(/.*/, cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -47,6 +47,13 @@ app.use("/api/dashboard", dashboardRouter);
 
 app.get("/", (req, res) => {
   res.send("API WORKING");
+});
+
+// PORT
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 export default app;
