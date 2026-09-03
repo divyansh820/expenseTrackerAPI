@@ -3,46 +3,57 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET;
 const TOKEN_EXPIRES = "24h";
 
-// check token
-const createToken = (userId) =>
-  jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
+// Helper to create JWT token
+const createToken = (userId) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is not defined");
+  }
+  return jwt.sign({ id: userId }, secret, { expiresIn: TOKEN_EXPIRES });
+};
 
 // REGISTER A USER
-
 export async function registerUser(req, res) {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({
       success: false,
-      message: "All field are required ",
+      message: "All fields are required",
     });
   }
-  if (!validator.isEmail(email)) {
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!validator.isEmail(normalizedEmail)) {
     return res.status(400).json({
       success: false,
-      message: "Invalid Email",
+      message: "Please enter a valid email address",
     });
   }
 
   if (password.length < 8) {
     return res.status(400).json({
       success: false,
-      message: "Password should contains 8 characters",
+      message: "Password must be at least 8 characters long",
     });
   }
 
   try {
-    if (await User.findOne({ email })) {
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: "User Email already exists",
+        message: "Email already registered",
       });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed });
+    const user = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      password: hashed,
+    });
     const token = createToken(user._id);
     res.status(201).json({
       success: true,
@@ -50,27 +61,27 @@ export async function registerUser(req, res) {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Register Error:", err);
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Server error. Please try again later.",
     });
   }
 }
 
-// to login a user
-
+// LOGIN A USER
 export async function loginUser(req, res) {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({
       success: false,
-      message: "All fields are required",
+      message: "Please enter email and password",
     });
   }
 
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -86,7 +97,7 @@ export async function loginUser(req, res) {
     }
 
     const token = createToken(user._id);
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       token,
       user: {
@@ -96,10 +107,10 @@ export async function loginUser(req, res) {
       },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Login Error:", err);
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Server error. Please try again later.",
     });
   }
 }

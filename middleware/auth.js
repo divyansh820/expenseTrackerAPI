@@ -1,11 +1,8 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET =  process.env.JWT_SECRET;
-
 const authMiddleware = async (req, res, next) => {
   try {
-    // Get token from header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -15,13 +12,25 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Extract token
     const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No token provided",
+      });
+    }
 
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET is not configured");
+      return res.status(500).json({
+        success: false,
+        message: "Authentication service configuration error",
+      });
+    }
 
-    // Find user
+    const decoded = jwt.verify(token, secret);
+
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
@@ -31,9 +40,7 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Attach user to request
     req.user = user;
-
     next();
   } catch (error) {
     console.log("Auth Error:", error.message);
