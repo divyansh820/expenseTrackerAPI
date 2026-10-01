@@ -114,7 +114,7 @@ export async function deleteIncome(req, res) {
   }
 }
 
-// to download the data in an  excel sheet
+// to download the data in an excel sheet
 export async function downloadIncomeExcel(req, res) {
   const userId = req.user._id;
   try {
@@ -127,11 +127,19 @@ export async function downloadIncomeExcel(req, res) {
     }));
     const worksheet = XLSX.utils.json_to_sheet(plainData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "incomeModel");
-    XLSX.writeFile(workbook, "income_details.xlsx");
-    res.download("income_details.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Income");
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="income_details.xlsx"',
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    return res.send(buffer);
   } catch (err) {
-    console.log(err);
+    console.log("Download Income Excel Error:", err);
     res.status(500).json({
       success: false,
       message: "Server error",

@@ -124,11 +124,19 @@ export async function downloadExpenseExcel(req, res) {
     }));
     const worksheet = XLSX.utils.json_to_sheet(plainData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "expenseModel");
-    XLSX.writeFile(workbook, "expense_details.xlsx");
-    res.download("expense_details.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Expense");
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="expense_details.xlsx"',
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    return res.send(buffer);
   } catch (err) {
-    console.log(err);
+    console.log("Download Expense Excel Error:", err);
     res.status(500).json({
       success: false,
       message: "Server error",
